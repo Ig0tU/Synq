@@ -35,10 +35,8 @@ ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 RUN pip install --no-cache-dir numpy==1.22.4
 
 # Install the rest of the dependencies and the SpaCy model
-# Using --break-system-packages might be needed if pip complains about global installs,
-# though --no-cache-dir is good for image size.
-# Adding spacy download here to keep build clean
-RUN pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt && \
+    python -m spacy download en_core_web_sm
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
@@ -50,6 +48,9 @@ RUN chmod -R 777 /app
 # Copy the rest of the application code to /app
 # This should be done AFTER all dependencies are installed
 COPY . /app/
+
+# Disable Numba's on-disk caching (often problematic in containers)
+ENV NUMBA_DISABLE_PER_FILE_CACHE=1
 
 # Expose the port the app runs on
 EXPOSE 7860
