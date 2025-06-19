@@ -25,10 +25,10 @@ RUN apt-get update && \
         libgl1-mesa-glx \
         libsm6 \
         libxrender1 \
-        libglib2.0-0 \  <-- THIS LINE MUST BE PRESENT
-        && \
+        libglib2.0-0 && \  
     rm -rf /var/lib/apt/lists/*
 
+    
 # Set LLVM_CONFIG environment variable *before* installing numba/llvmlite
 # Use the version that apt-get install llvm provides (likely llvm-config-14 for Bookworm)
 ENV LLVM_CONFIG=/usr/bin/llvm-config-14
