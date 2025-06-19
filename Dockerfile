@@ -25,7 +25,9 @@ RUN apt-get update && \
         libgl1-mesa-glx \
         libsm6 \
         libxrender1 \
-        libglib2.0-0 && \  
+        libglib2.0-0 \
+        ffmpeg \
+        && \
     rm -rf /var/lib/apt/lists/*
 
     
