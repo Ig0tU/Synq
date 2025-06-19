@@ -24,6 +24,7 @@ matplotlib
 msgpack==1.0.5
 networkx==2.6.3
 numpy==1.21.6
+numba
 oauthlib==3.2.2
 mkl-service==2.4.0                 
 opencv-contrib-python==4.11.0.86  
