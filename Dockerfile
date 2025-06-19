@@ -29,4 +29,4 @@ COPY . .
 EXPOSE 7860
 
 # Default command to run Flask app
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
