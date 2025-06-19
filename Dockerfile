@@ -25,9 +25,7 @@ RUN apt-get update && \
         libgl1-mesa-glx \
         libsm6 \
         libxrender1 \
-        # --- NEW: Add libglib2.0-0 for libgthread-2.0.so.0 ---
-        libglib2.0-0 \
-        # --- End NEW ---
+        libglib2.0-0 \  <-- THIS LINE MUST BE PRESENT
         && \
     rm -rf /var/lib/apt/lists/*
 
@@ -40,11 +38,9 @@ ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 RUN pip install --no-cache-dir numpy==1.22.4
 
 # Install the rest of the dependencies
-# REMOVED: && python -m spacy download en_core_web_sm
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code to /app
-# This should be done AFTER all dependencies are installed
 COPY . /app/
 
 # Create necessary directories with appropriate permissions
