@@ -25,23 +25,17 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir numpy
 
 # Install the rest of the dependencies and the SpaCy model in a single layer to optimize image size
-RUN pip install --no-cache-dir -r requirements.txt && \
-    python -m spacy download en_core_web_sm
+RUN pip install --no-cache-dir -r requirements.txt 
 
 # Create necessary directories with appropriate permissions
-RUN mkdir -p /tmp/flask_sessions /app/flask_sessions /app/uploads && \
-    chmod -R 777 /tmp/flask_sessions /app/flask_sessions /app/uploads
+RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
+ && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
 
 # Ensure all relevant directories have the correct permissions
 RUN chmod -R 777 /app
 
 # Copy the rest of the application code to /app
 COPY . /app/
-
-# Ensure the upload directory and app directory have the correct permissions
-RUN mkdir -p /app/uploads && \
-    chmod -R 777 /app/uploads && \
-    chmod -R 777 /app
 
 # Expose the port the app runs on
 EXPOSE 7860
