@@ -4,7 +4,7 @@ emoji: 🦀
 colorFrom: indigo
 colorTo: indigo
 sdk: docker
-pinned: false
+pinned: true
 license: unknown
 short_description: an ai avatar creator with lip sync.
 ---
