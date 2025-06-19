@@ -3,7 +3,6 @@ FROM python:3.9-slim-bullseye
 # Environment
 ENV PYTHONUNBUFFERED=1 \
     PORT=7860 \
-    LLVM_CONFIG=/usr/bin/llvm-config
 
 WORKDIR /app
 
@@ -12,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg git curl \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libxext6 \
     build-essential \
-    llvm llvm-dev clang-11 \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install numpy before llvmlite/numba
