@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Wav2Lip Inference App{% endblock %}
+
+{% block head_extra %}
+    <style>
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .flash-messages li {
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            animation: fadeInOut 0.5s ease forwards;
+        }
+        .flash-messages .error {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .flash-messages .success {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .flash-messages .info {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* Form specific styles */
+        .inference-form {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px var(--shadow);
+            margin-top: 40px;
+            margin-bottom: 40px;
+            animation: fadeInScale 0.8s ease-out forwards;
+        }
+
+        .inference-form h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+
+        .form-group input[type="file"],
+        .form-group select,
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-size: 1em;
+            box-sizing: border-box; /* Include padding in width */
+            transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input[type="file"]:focus,
+        .form-group select:focus,
+        .form-group input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        .form-group select {
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23{{ "e0e0e0" if theme == "dark" else "333" }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color); /* Changes checkbox color */
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0; /* Override default label margin */
+            font-size: 1em;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .submit-button:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animation for flash messages */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Optional: Add a spinner for loading state */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            color: white;
+            font-size: 1.5em;
+            display: none; /* Hidden by default */
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid var(--primary-color); /* Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <ul class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </ul>
+
+    <section class="inference-form">
+        <h2>Generate Lip-Synced Video</h2>
+        <form action="{{ url_for('infer') }}" method="post" enctype="multipart/form-data" id="inferenceForm">
+            <div class="form-group">
+                <label for="face_file">Select Face Input (Video/Image):</label>
+                <input type="file" id="face_file" name="face_file" accept="video/*,image/*" required>
+            </div>
+
+            <div class="form-group">
+                <label for="audio_file">Select Audio Input (Audio/Video):</label>
+                <input type="file" id="audio_file" name="audio_file" accept="audio/*,video/*" required>
+            </div>
+
+            <div class="form-group">
+                <label for="model_select">Select Wav2Lip Model:</label>
+                <select id="model_select" name="model_select" required>
+                    <option value="">-- Choose a model --</option>
+                    {% for model in models %}
+                        <option value="{{ model }}">{{ model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <h3>Advanced Options (Optional)</h3>
+            <div class="checkbox-group">
+                <input type="checkbox" id="static_input" name="static_input">
+                <label for="static_input">Use static image (only first frame of video)</label>
+            </div>
+
+            <div class="form-group">
+                <label for="fps">FPS (for static image input):</label>
+                <input type="number" id="fps" name="fps" value="25" min="1" max="60">
+            </div>
+
+            <div class="form-group">
+                <label for="resize_factor">Resize Factor:</label>
+                <input type="number" id="resize_factor" name="resize_factor" value="1" min="1" max="4">
+                <small style="color: var(--text-color);">Reduces resolution (e.g., 2 for half resolution). Can improve performance.</small>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="rotate" name="rotate">
+                <label for="rotate">Rotate 90 degrees clockwise</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="nosmooth" name="nosmooth">
+                <label for="nosmooth">Disable face detection smoothing</label>
+            </div>
+
+            <button type="submit" class="submit-button pulse">Generate Lip-Sync</button>
+        </form>
+    </section>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Processing your video, please wait...</p>
+        <p>This may take several minutes depending on video length and selected options.</p>
+    </div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inferenceForm = document.getElementById('inferenceForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        inferenceForm.addEventListener('submit', function() {
+            loadingOverlay.style.display = 'flex'; // Show loading overlay on form submission
+            // Disable submit button to prevent multiple submissions
+            const submitButton = inferenceForm.querySelector('.submit-button');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Processing...';
+            }
+        });
+
+        // Hide loading overlay if page loads without form submission (e.g., on error redirect)
+        window.addEventListener('load', function() {
+            loadingOverlay.style.display = 'none';
+            const submitButton = inferenceForm.querySelector('.submit-button');
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Generate Lip-Sync';
+            }
+        });
+    });
+</script>
+{% endblock %}

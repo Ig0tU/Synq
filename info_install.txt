@@ -1,0 +1,54 @@
+install version python 3.7
+conda create the environment
+install all with the code forge 
+conda install -c conda-forge numpy=1.17.1 scipy=1.3.1 numba=0.48 tqdm=4.45.0 -y
+conda install -c conda-forge librosa=0.7.0 -y
+conda install -c conda-forge opencv=4.1.0 -y
+pip install --no-deps opencv-contrib-python==4.1.0.25
+pip install https://mirrors.aliyun.com/pytorch-wheels/cpu/torchvision-0.3.0-cp37-cp37m-win_amd64.whl
+pip install https://mirror.sjtu.edu.cn/pytorch-wheels/cpu/torch-1.1.0-cp37-cp37m-win_amd64.whl    
+
+
+all installs
+(wav2lip_env) D:\DEV PATEL\2025\Wav2Lip-master>pip freeze
+audioread @ file:///D:/bld/audioread_1660497578082/work
+certifi @ file:///home/conda/feedstock_root/build_artifacts/certifi_1725278078093/work/certifi
+cffi @ file:///D:/bld/cffi_1666183927951/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1635519461629/work
+decorator @ file:///home/conda/feedstock_root/build_artifacts/decorator_1641555617451/work
+fonttools @ file:///D:/bld/fonttools_1666390069478/work
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1691577114857/work
+kiwisolver @ file:///D:/bld/kiwisolver_1657953189205/work
+librosa==0.7.0
+llvmlite==0.31.0
+matplotlib @ file:///C:/ci/matplotlib-suite_1634667159685/work
+mkl-service==2.3.0
+munkres==1.1.4
+numba==0.48.0
+numpy==1.17.1
+opencv-contrib-python==4.1.0.25
+packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1696202382185/work
+Pillow==9.3.0
+ply @ file:///home/conda/feedstock_root/build_artifacts/ply_1712242996588/work
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1724616129934/work
+PyQt5-sip @ file:///D:/bld/pyqt-split_1665676787902/work/pyqt_sip
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1709299778482/work
+resampy @ file:///home/conda/feedstock_root/build_artifacts/resampy_1657206395424/work
+scikit-learn @ file:///D:/bld/scikit-learn_1611079929791/work
+scipy==1.3.1
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+soundfile @ file:///home/conda/feedstock_root/build_artifacts/pysoundfile_1676571469739/work
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1643647933166/work
+toml @ file:///home/conda/feedstock_root/build_artifacts/toml_1604308577558/work
+torch @ https://mirror.sjtu.edu.cn/pytorch-wheels/cpu/torch-1.1.0-cp37-cp37m-win_amd64.whl
+torchvision @ https://mirrors.aliyun.com/pytorch-wheels/cpu/torchvision-0.3.0-cp37-cp37m-win_amd64.whl
+tornado @ file:///D:/bld/tornado_1656937938087/work
+tqdm==4.45.0
+typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1688315532570/work
+unicodedata2 @ file:///D:/bld/unicodedata2_1649112131705/work
+wincertstore==0.2
+
+drive 
+model download for chrckpoint - https://drive.google.com/drive/folders/153HLrqlBNxzZcHi17PEvP09kkAfzRshM
+face recognition model - https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth  (alternate link -  https://iiitaphyd-my.sharepoint.com/:u:/g/personal/prajwal_k_research_iiit_ac_in/EZsy6qWuivtDnANIG73iHjIBjMSoojcIV0NULXV-yiuiIg?e=qTasa8)
