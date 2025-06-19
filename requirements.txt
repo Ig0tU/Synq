@@ -23,8 +23,8 @@ MarkupSafe==2.1.5
 matplotlib
 msgpack==1.0.5
 networkx==2.6.3
-numpy
-numba==0.48.0 # <--- Pin numba to a compatible version
+numpy==1.22.4 # <--- PIN NUMPY HERE
+numba==0.56.4
 oauthlib==3.2.2
 mkl-service==2.4.0
 opencv-contrib-python==4.11.0.86
