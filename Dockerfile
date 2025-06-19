@@ -3,7 +3,8 @@ FROM python:3.9-slim
 
 # Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    NUMBA_DISABLE_JIT=1
 
 # Set the working directory
 WORKDIR /app
