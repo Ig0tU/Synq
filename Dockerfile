@@ -1,4 +1,4 @@
-# Use a Python base image (can switch to HF CPU/GPU base later if needed)
+# Use Python 3.9 base image
 FROM python:3.9-slim
 
 # Set environment variables
@@ -6,27 +6,33 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=7860
 
-# Create app directory
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including ffmpeg
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
     curl \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
+# Copy requirements.txt
 COPY requirements.txt .
+
+# Upgrade pip to avoid version issues and install dependencies
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
+# Copy app files
 COPY . .
 
-# Expose port used by Hugging Face inference endpoint
+# Expose port for Hugging Face
 EXPOSE 7860
 
-# Default command to run Flask app
+# Start the Flask app with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
