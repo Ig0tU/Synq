@@ -28,6 +28,10 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create necessary directories with appropriate permissions
+RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
+RUN chmod -R 777 /app
+
 # Copy app files
 COPY . .
 
