@@ -1,6 +1,9 @@
 FROM python:3.9-slim-bullseye
 
-# Environment
+# Disable Numba’s JIT cache (avoids Librosa/Numba caching errors)
+ENV NUMBA_DISABLE_JIT=1
+
+# Python & app environment
 ENV PYTHONUNBUFFERED=1 \
     PORT=7860
 
@@ -11,20 +14,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg git curl \
     libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libxext6 \
     build-essential \
+    llvm llvm-dev clang-11 \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install numpy before llvmlite/numba
-RUN pip install --upgrade pip
+# Upgrade pip and pre‑install numpy
+RUN pip install --upgrade pip 
+# && pip install numpy==1.21.6
 
-# Install Gunicorn and app dependencies
-COPY requirements.txt .  
+# Install Gunicorn + Python deps
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories
+# Create directories
 RUN mkdir -p cache uploads results checkpoints temp \
-    && chmod -R 777 cache uploads results checkpoints temp
+ && chmod -R 777 cache uploads results checkpoints temp
 
-# Copy application code
+# Copy app code
 COPY . .
 
 EXPOSE 7860
