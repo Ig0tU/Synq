@@ -38,8 +38,7 @@ RUN pip install --no-cache-dir numpy==1.22.4
 # Using --break-system-packages might be needed if pip complains about global installs,
 # though --no-cache-dir is good for image size.
 # Adding spacy download here to keep build clean
-RUN pip install --no-cache-dir -r requirements.txt && \
-    python -m spacy download en_core_web_sm
+RUN pip install --no-cache-dir -r requirements.txt 
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
