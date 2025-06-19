@@ -17,7 +17,6 @@ itsdangerous==2.1.2
 Jinja2==3.1.6
 joblib
 librosa==0.7.0
-llvmlite==0.31.0
 lmdb==1.6.2
 Markdown==3.8
 MarkupSafe==2.1.5
