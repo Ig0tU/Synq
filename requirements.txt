@@ -40,11 +40,6 @@ scikit-image==0.19.3
 scikit-learn
 scipy==1.7.3
 soupsieve==2.4.1
-tb-nightly==2.20.0a20250616
-tensorboard-data-server==0.6.1
-tensorboard-plugin-wit==1.8.1
-tifffile==2021.11.2
-tomli==2.0.1
 torch==1.13.1
 torchaudio==0.13.1
 torchvision==0.14.1
