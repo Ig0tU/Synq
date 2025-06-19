@@ -11,30 +11,45 @@ WORKDIR /app
 # Copy the requirements file into the container at /app
 COPY requirements.txt /app/
 
-# Install build dependencies for numba/llvmlite (LLVM and Clang)
+# Install build dependencies for numba/llvmlite (LLVM and Clang), including specific dev libraries
 # This uses the default available LLVM/Clang versions for Debian Bookworm
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         llvm \
         clang \
-        # Add any other build essentials if needed by other packages
-        build-essential && \
+        # Essential build tools
+        build-essential \
+        # Libraries for llvmlite and cffi
+        libedit-dev \
+        libffi-dev \
+        # Python dev headers, often needed for compiling Python extensions
+        python3-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install numpy first, as numba/llvmlite depend on it for building
-RUN pip install --no-cache-dir numpy
+# Set LLVM_CONFIG environment variable *before* installing numba/llvmlite
+# Use the version that apt-get install llvm provides (likely llvm-config-14 for Bookworm)
+ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
-# Install the rest of the dependencies and the SpaCy model in a single layer to optimize image size
-RUN pip install --no-cache-dir -r requirements.txt 
+# Install numpy first, as numba/llvmlite depend on it for building
+# It's explicitly installed here to ensure it's available for numba's build process.
+RUN pip install --no-cache-dir numpy==1.22.4
+
+# Install the rest of the dependencies and the SpaCy model
+# Using --break-system-packages might be needed if pip complains about global installs,
+# though --no-cache-dir is good for image size.
+# Adding spacy download here to keep build clean
+RUN pip install --no-cache-dir -r requirements.txt && \
+    python -m spacy download en_core_web_sm
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
  && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
 
-# Ensure all relevant directories have the correct permissions
+# Ensure all relevant directories have the correct permissions (redundant for /app itself if contents are copied later)
 RUN chmod -R 777 /app
 
 # Copy the rest of the application code to /app
+# This should be done AFTER all dependencies are installed
 COPY . /app/
 
 # Expose the port the app runs on
