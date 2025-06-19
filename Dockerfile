@@ -1,15 +1,14 @@
-# Use Python 3.9 base image
 FROM python:3.9-slim
 
-# Set environment variables
+# Environment configuration
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=7860
 
-# Set working directory
+# Working directory
 WORKDIR /app
 
-# Install system dependencies including ffmpeg
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
@@ -19,24 +18,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsm6 \
     libxrender1 \
     libxext6 \
+    llvm \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt
-COPY requirements.txt .
-
-# Upgrade pip to avoid version issues and install dependencies
+# Pre-install numpy to resolve numba setup dependency
 RUN pip install --upgrade pip
+RUN pip install numpy==1.21.6
+
+# Copy requirements and install remaining dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories with appropriate permissions
-RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
-RUN chmod -R 777 /app
-
-# Copy app files
+# Copy all application files
 COPY . .
 
-# Expose port for Hugging Face
+# Expose Hugging Face Gradio/Flask port
 EXPOSE 7860
 
-# Start the Flask app with Gunicorn
+# Launch app with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
