@@ -1,14 +1,15 @@
 FROM python:3.9-slim
 
-# Environment configuration
+# Environment config
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=7860
+    PORT=7860 \
+    LLVM_CONFIG=/usr/lib/llvm-10/bin/llvm-config
 
 # Working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including LLVM 10
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
@@ -18,23 +19,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsm6 \
     libxrender1 \
     libxext6 \
-    llvm \
     build-essential \
+    llvm-10 \
+    llvm-10-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Pre-install numpy to resolve numba setup dependency
+# Upgrade pip and install numpy early (needed for numba)
 RUN pip install --upgrade pip
 RUN pip install numpy==1.21.6
 
-# Copy requirements and install remaining dependencies
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all application files
+# Copy app files
 COPY . .
 
-# Expose Hugging Face Gradio/Flask port
+# Expose port
 EXPOSE 7860
 
-# Launch app with Gunicorn
+# Run app with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
