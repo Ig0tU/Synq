@@ -11,13 +11,14 @@ WORKDIR /app
 # Copy the requirements file into the container at /app
 COPY requirements.txt /app/
 
-# Install build dependencies for numba/llvmlite (LLVM) and then numpy
-# This needs to be done before installing the rest of requirements.txt
+# Install build dependencies for numba/llvmlite (LLVM and Clang)
+# This uses the default available LLVM/Clang versions for Debian Bookworm
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        llvm-11-dev \
-        libllvm11 \
-        clang && \
+        llvm \
+        clang \
+        # Add any other build essentials if needed by other packages
+        build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 # Install numpy first, as numba/llvmlite depend on it for building
