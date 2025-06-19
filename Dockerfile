@@ -34,9 +34,9 @@ ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 # It's explicitly installed here to ensure it's available for numba's build process.
 RUN pip install --no-cache-dir numpy==1.22.4
 
-# Install the rest of the dependencies and the SpaCy model
-RUN pip install --no-cache-dir -r requirements.txt && \
-    python -m spacy download en_core_web_sm
+# Install the rest of the dependencies
+# REMOVED: && python -m spacy download en_core_web_sm
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
