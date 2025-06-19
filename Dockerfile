@@ -1,37 +1,53 @@
-FROM python:3.9-slim-bullseye
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
-# Disable Numba’s JIT cache (avoids Librosa/Numba caching errors)
-ENV NUMBA_DISABLE_JIT=1
+# Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Python & app environment
-ENV PYTHONUNBUFFERED=1 \
-    PORT=7860
-
+# Set the working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg git curl \
-    libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libxext6 \
-    build-essential \
-    llvm llvm-dev clang-11 \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the requirements file into the container at /app
+COPY requirements.txt /app/
 
-# Upgrade pip and pre‑install numpy
-RUN pip install --upgrade pip 
-# && pip install numpy==1.21.6
+# Install build dependencies for numba/llvmlite (LLVM) and then numpy
+# This needs to be done before installing the rest of requirements.txt
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        llvm-11-dev \
+        libllvm11 \
+        clang && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Gunicorn + Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install numpy first, as numba/llvmlite depend on it for building
+RUN pip install --no-cache-dir numpy
 
-# Create directories
-RUN mkdir -p cache uploads results checkpoints temp \
- && chmod -R 777 cache uploads results checkpoints temp
+# Install the rest of the dependencies and the SpaCy model in a single layer to optimize image size
+RUN pip install --no-cache-dir -r requirements.txt && \
+    python -m spacy download en_core_web_sm
 
-# Copy app code
-COPY . .
+# Create necessary directories with appropriate permissions
+RUN mkdir -p /tmp/flask_sessions /app/flask_sessions /app/uploads && \
+    chmod -R 777 /tmp/flask_sessions /app/flask_sessions /app/uploads
 
+# Ensure all relevant directories have the correct permissions
+RUN chmod -R 777 /app
+
+# Copy the rest of the application code to /app
+COPY . /app/
+
+# Ensure the upload directory and app directory have the correct permissions
+RUN mkdir -p /app/uploads && \
+    chmod -R 777 /app/uploads && \
+    chmod -R 777 /app
+
+# Expose the port the app runs on
 EXPOSE 7860
 
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
+# Set environment variables for Flask
+ENV FLASK_APP=app.py \
+    FLASK_ENV=production
+
+# Command to run the application
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:7860", "--timeout", "120", "app:app"]
