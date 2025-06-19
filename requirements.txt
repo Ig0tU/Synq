@@ -23,7 +23,6 @@ MarkupSafe==2.1.5
 matplotlib
 msgpack==1.0.5
 networkx==2.6.3
-numba==0.48.0
 numpy==1.21.6
 oauthlib==3.2.2
 mkl-service==2.4.0                 
