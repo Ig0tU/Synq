@@ -24,7 +24,13 @@ RUN apt-get update && \
         libedit-dev \
         libffi-dev \
         # Python dev headers, often needed for compiling Python extensions
-        python3-dev && \
+        python3-dev \
+        # --- NEW: Install OpenCV dependencies for graphical libraries ---
+        libgl1-mesa-glx \
+        libsm6 \
+        libxrender1 \
+        # --- End NEW ---
+        && \
     rm -rf /var/lib/apt/lists/*
 
 # Set LLVM_CONFIG environment variable *before* installing numba/llvmlite
@@ -39,18 +45,21 @@ RUN pip install --no-cache-dir numpy==1.22.4
 # REMOVED: && python -m spacy download en_core_web_sm
 RUN pip install --no-cache-dir -r requirements.txt
 
+# --- NEW: Move COPY . /app/ here, after all apt-get and pip installs ---
+# Copy the rest of the application code to /app
+# This should be done AFTER all dependencies are installed
+COPY . /app/
+# --- End NEW ---
+
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
  && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
 
 # Ensure all relevant directories have the correct permissions (redundant for /app itself if contents are copied later)
+# This line is now effectively ensuring any newly created files/directories *after* the initial copy also have permissions.
 RUN chmod -R 777 /app
 
-# Copy the rest of the application code to /app
-# This should be done AFTER all dependencies are installed
-COPY . /app/
-
-# Disable Numba's on-disk caching (often problematic in containers)
+# Disable Numba's on-disk caching (often problematic in containers) - already present but keeping it for clarity
 ENV NUMBA_DISABLE_PER_FILE_CACHE=1
 
 # Expose the port the app runs on
