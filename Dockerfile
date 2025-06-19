@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Upgrade pip and install numpy before llvmlite/numba
 RUN pip install --upgrade pip
-RUN pip install numpy==1.21.6
 
 # Install Gunicorn and app dependencies
 COPY requirements.txt .  
