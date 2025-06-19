@@ -1,3 +1,12 @@
+# Monkey‑patch Numba’s JIT dispatcher so it never tries to cache
+# (silences that “no locator available” RuntimeError).
+try:
+    import numba.core.decorators as _nd
+    _nd.JitDispatcher.enable_caching = lambda self: None
+except Exception:
+    pass
+# ────────────────────────────────────────────────────────────
+
 import librosa
 import librosa.filters
 import numpy as np
@@ -5,6 +14,9 @@ import numpy as np
 from scipy import signal
 from scipy.io import wavfile
 from hparams import hparams as hp
+
+def load_wav(path, sr):
+    return librosa.core.load(path, sr=sr)[0]
 
 def load_wav(path, sr):
     return librosa.core.load(path, sr=sr)[0]
