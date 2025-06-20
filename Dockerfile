@@ -52,11 +52,20 @@ RUN mkdir -p uploads results checkpoints temp \
 RUN chmod -R 777 /app
 
 # Expose the inference port
+# Expose the inference port
 EXPOSE 7860
 
 # Set Flask env
 ENV FLASK_APP=app.py \
     FLASK_ENV=production
 
-# Launch with Gunicorn (1 worker, sync, 30s timeout)
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
+# Launch with Gunicorn:
+#  - gthread: threaded worker class
+#  - threads=2: two threads per worker
+#  - timeout=600: 10-minute timeout to cover long inferences
+CMD ["gunicorn", \
+     "--worker-class", "gthread", \
+     "--threads", "2", \
+     "--timeout", "600", \
+     "--bind", "0.0.0.0:7860", \
+     "app:app"]
