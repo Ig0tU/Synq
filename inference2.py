@@ -235,14 +235,16 @@ def run_inference(
             frame = frame[y1:y2, x1:x2]
             full_frames.append(frame)
 
-    print ("Number of frames available for inference: "+str(len(full_frames)))
+    print("Number of frames available for inference:", len(full_frames))
     if not full_frames:
         raise ValueError("No frames could be read from the input face file.")
 
     temp_audio_path = os.path.join(temp_dir, 'temp_audio.wav')
+
+    # Updated FFmpeg command: force mono, 16-bit, 16kHz
     if not audio_path.endswith('.wav'):
         print('Extracting raw audio...')
-        command = f'ffmpeg -y -i "{audio_path}" -strict -2 "{temp_audio_path}"'
+        command = f'ffmpeg -y -i "{audio_path}" -ac 1 -ar 16000 -sample_fmt s16 "{temp_audio_path}"'
         try:
             subprocess.run(command, shell=True, check=True, capture_output=True)
             audio_path = temp_audio_path
@@ -250,14 +252,17 @@ def run_inference(
             print(f"FFmpeg error: {e.stderr.decode()}")
             raise RuntimeError(f"Failed to extract audio from {audio_path}. Error: {e.stderr.decode()}")
     else:
-        # Copy the wav file to temp if it's already wav to maintain consistency in naming
         shutil.copy(audio_path, temp_audio_path)
         audio_path = temp_audio_path
 
-
+    # Load WAV audio
     wav = audio.load_wav(audio_path, 16000)
-    # >>> CRUCIAL FIX: Explicitly cast to float32 for resampy/numba compatibility <<<
     wav = wav.astype(np.float32)
+
+    # Check audio length
+    print(f"Extracted audio samples: {len(wav)}, duration: {len(wav)/16000:.2f} sec")
+    if len(wav) < 16000:
+        raise ValueError(f"Audio is too short after conversion: only {len(wav)} samples. Please upload a longer clip.")
 
     mel = audio.melspectrogram(wav)
     print("Mel spectrogram shape:", mel.shape)
