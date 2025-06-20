@@ -6,15 +6,13 @@ import resampy
 from hparams import hparams as hp
 
 def load_wav(path, sr):
-    """
-    Load a WAV file and resample it using scipy + resampy.
-    """
     orig_sr, audio = wavfile.read(path)
 
-    # Normalize if needed
+    if len(audio) < 100:  # Arbitrary threshold (can be higher for safety)
+        raise ValueError(f"Input audio too short: {len(audio)} samples")
+
     if audio.dtype.kind == 'i':
-        max_val = np.iinfo(audio.dtype).max
-        audio = audio.astype(np.float32) / max_val
+        audio = audio.astype(np.float32) / np.iinfo(audio.dtype).max
     else:
         audio = audio.astype(np.float32)
 
