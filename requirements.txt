@@ -18,6 +18,7 @@ Jinja2
 joblib
 librosa
 lmdb
+lws
 Markdown
 MarkupSafe
 matplotlib
