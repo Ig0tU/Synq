@@ -37,13 +37,11 @@ RUN apt-get update && \
 ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
 # Explicitly install compatible versions of core audio/Numba stack
-# These versions are compatible with Python 3.9 and LLVM 14 (from clang-14)
-# Numba 0.56.0 works with llvmlite 0.39.0
-# Librosa 0.9.x generally works with resampy 0.3.x
+# Targeting a more stable Numba/llvmlite for Python 3.9 with resampy
 RUN pip install --no-cache-dir \
     numpy==1.22.4 \
-    llvmlite==0.39.0 \
-    numba==0.56.0 \
+    llvmlite==0.36.0 \
+    numba==0.53.1 \
     resampy==0.3.1 \
     librosa==0.9.2
 
