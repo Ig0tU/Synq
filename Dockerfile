@@ -1,16 +1,21 @@
 # Use an official Python runtime as a parent image (Debian 12 Bookworm)
 FROM python:3.9-slim
 
-# Disable Python bytecode and buffer stdout/stderr
+# Disable Python bytecode, buffer stdout/stderr, pin NumPy <2, and redirect caches
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # Ensure NumPy <2 so all C extensions load correctly
-    NUMPY_EXPLICIT_VERSION=1.23.5
+    NUMPY_EXPLICIT_VERSION=1.23.5 \
+    XDG_CACHE_HOME=/app/cache \
+    TORCH_HOME=/app/cache/torch \
+    LLVM_CONFIG=/usr/bin/llvm-config-14
 
-# Working directory
 WORKDIR /app
 
-# Install build dependencies, audio/video libs, and LLVM 14 for llvmlite
+# Create cache dirs before anything else
+RUN mkdir -p /app/cache/torch/hub \
+    && chmod -R 777 /app/cache
+
+# Install build dependencies, audio/video libs, and LLVM 14
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -23,30 +28,25 @@ RUN apt-get update && \
         clang-14 llvm-14-dev llvm-14-runtime \
     && rm -rf /var/lib/apt/lists/*
 
-# Point llvmlite at the correct llvm-config
-ENV LLVM_CONFIG=/usr/bin/llvm-config-14
-
-# Remove any preinstalled NumPy, then install a NumPy 1.x release
+# Pin NumPy to 1.x, then install libs that must compile against it
 RUN pip uninstall -y numpy || true && \
-    pip install --no-cache-dir numpy==${NUMPY_EXPLICIT_VERSION}
+    pip install --no-cache-dir numpy==${NUMPY_EXPLICIT_VERSION} && \
+    pip install --no-cache-dir \
+        llvmlite==0.38.0 \
+        numba==0.55.2 \
+        resampy==0.3.1 \
+        librosa==0.9.2
 
-# Install the trio that need to compile against NumPy 1.x
-RUN pip install --no-cache-dir \
-      llvmlite==0.38.0 \
-      numba==0.55.2 \
-      resampy==0.3.1 \
-      librosa==0.9.2
-
-# Copy your application requirements (must NOT re‑pin NumPy)
+# Install your other Python dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . /app/
 
-# Create and permissively chmod required directories
-RUN mkdir -p cache uploads results checkpoints temp && \
-    chmod -R 777 cache uploads results checkpoints temp
+# Create and chmod the uploads/results/checkpoints/temp dirs
+RUN mkdir -p uploads results checkpoints temp \
+    && chmod -R 777 uploads results checkpoints temp
 
 # Ensure the entire app directory is writable
 RUN chmod -R 777 /app
@@ -54,9 +54,9 @@ RUN chmod -R 777 /app
 # Expose the inference port
 EXPOSE 7860
 
-# Environment variables for Flask
+# Set Flask env
 ENV FLASK_APP=app.py \
     FLASK_ENV=production
 
-# Launch with Gunicorn (defaults: 1 worker, sync, 30s timeout)
+# Launch with Gunicorn (1 worker, sync, 30s timeout)
 CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
