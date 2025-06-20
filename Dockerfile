@@ -1,10 +1,11 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
-# Set environment variables for Python
+# Set environment variables for Python and Numba
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    NUMBA_DISABLE_JIT=1
+    NUMBA_DISABLE_JIT=1 \
+    NUMBA_CACHE_DIR=/tmp/numba_cache
 
 # Set the working directory
 WORKDIR /app
@@ -12,8 +13,7 @@ WORKDIR /app
 # Copy the requirements file into the container at /app
 COPY requirements.txt /app/
 
-# Install build dependencies for numba/llvmlite (LLVM and Clang), including specific dev libraries
-# This uses the default available LLVM/Clang versions for Debian Bookworm
+# Install build dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         llvm \
@@ -27,40 +27,33 @@ RUN apt-get update && \
         libxrender1 \
         libglib2.0-0 \
         ffmpeg \
-        && \
-    rm -rf /var/lib/apt/lists/*
+        && rm -rf /var/lib/apt/lists/*
 
-    
-# Set LLVM_CONFIG environment variable *before* installing numba/llvmlite
-# Use the version that apt-get install llvm provides (likely llvm-config-14 for Bookworm)
+# Set LLVM_CONFIG before building llvmlite (if needed)
 ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
-# Install numpy first, as numba/llvmlite depend on it for building
-# It's explicitly installed here to ensure it's available for numba's build process.
+# Install numpy first for numba compatibility
 RUN pip install --no-cache-dir numpy==1.22.4
 
-# Install the rest of the dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code to /app
+# Copy the rest of the application
 COPY . /app/
 
-# Create necessary directories with appropriate permissions
+# Create necessary directories
 RUN mkdir -p /app/cache /app/uploads /app/results /app/checkpoints /app/temp \
  && chmod -R 777 /app/cache /app/uploads /app/results /app/checkpoints /app/temp
 
-# Ensure all relevant directories have the correct permissions
+# Ensure full permissions for app directory
 RUN chmod -R 777 /app
 
-# Disable Numba's on-disk caching (often problematic in containers)
-ENV NUMBA_DISABLE_PER_FILE_CACHE=1
-
-# Expose the port the app runs on
+# Expose the app port
 EXPOSE 7860
 
-# Set environment variables for Flask
+# Set Flask environment variables
 ENV FLASK_APP=app.py \
     FLASK_ENV=production
 
-# Command to run the application
+# Start the application with Gunicorn
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:7860", "--timeout", "120", "app:app"]
