@@ -32,6 +32,7 @@ RUN apt-get update && \
 # Set LLVM_CONFIG before building llvmlite (if needed)
 ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
+RUN pip install librosa==0.9.2 numba==0.55.2 llvmlite==0.38.0
 # Install numpy first for numba compatibility
 RUN pip install --no-cache-dir numpy==1.22.4
 
@@ -56,4 +57,4 @@ ENV FLASK_APP=app.py \
     FLASK_ENV=production
 
 # Start the application with Gunicorn
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:7860", "--timeout", "120", "app:app"]
+CMD ["gunicorn","0.0.0.0:7860","app:app"]
