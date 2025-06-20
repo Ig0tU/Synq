@@ -1,33 +1,34 @@
-# Monkey‑patch Numba’s JIT dispatcher so it never tries to cache
-# (silences that “no locator available” RuntimeError).
-try:
-    import numba.core.decorators as _nd
-    _nd.JitDispatcher.enable_caching = lambda self: None
-except Exception:
-    pass
-# ────────────────────────────────────────────────────────────
-
-import librosa
-import librosa.filters
+import os
 import numpy as np
-# import tensorflow as tf
-from scipy import signal
 from scipy.io import wavfile
+from scipy import signal
+import resampy
 from hparams import hparams as hp
 
 def load_wav(path, sr):
-    return librosa.core.load(path, sr=sr)[0]
+    """
+    Load a WAV file and resample it using scipy + resampy.
+    """
+    orig_sr, audio = wavfile.read(path)
 
-def load_wav(path, sr):
-    return librosa.core.load(path, sr=sr)[0]
+    # Normalize if needed
+    if audio.dtype.kind == 'i':
+        max_val = np.iinfo(audio.dtype).max
+        audio = audio.astype(np.float32) / max_val
+    else:
+        audio = audio.astype(np.float32)
+
+    if orig_sr != sr:
+        audio = resampy.resample(audio, orig_sr, sr)
+
+    return audio
 
 def save_wav(wav, path, sr):
-    wav *= 32767 / max(0.01, np.max(np.abs(wav)))
-    #proposed by @dsmiller
-    wavfile.write(path, sr, wav.astype(np.int16))
-
-def save_wavenet_wav(wav, path, sr):
-    librosa.output.write_wav(path, wav, sr=sr)
+    """
+    Save a float32 waveform to disk as 16-bit PCM WAV.
+    """
+    wav_int16 = (wav * 32767).clip(-32767, 32767).astype(np.int16)
+    wavfile.write(path, sr, wav_int16)
 
 def preemphasis(wav, k, preemphasize=True):
     if preemphasize:
@@ -49,18 +50,14 @@ def get_hop_size():
 def linearspectrogram(wav):
     D = _stft(preemphasis(wav, hp.preemphasis, hp.preemphasize))
     S = _amp_to_db(np.abs(D)) - hp.ref_level_db
-    
-    if hp.signal_normalization:
-        return _normalize(S)
-    return S
+
+    return _normalize(S) if hp.signal_normalization else S
 
 def melspectrogram(wav):
     D = _stft(preemphasis(wav, hp.preemphasis, hp.preemphasize))
     S = _amp_to_db(_linear_to_mel(np.abs(D))) - hp.ref_level_db
-    
-    if hp.signal_normalization:
-        return _normalize(S)
-    return S
+
+    return _normalize(S) if hp.signal_normalization else S
 
 def _lws_processor():
     import lws
@@ -68,15 +65,12 @@ def _lws_processor():
 
 def _stft(y):
     if hp.use_lws:
-        return _lws_processor(hp).stft(y).T
+        return _lws_processor().stft(y).T
     else:
+        import librosa  # Safe to import inside function
         return librosa.stft(y=y, n_fft=hp.n_fft, hop_length=get_hop_size(), win_length=hp.win_size)
 
-##########################################################
-#Those are only correct when using lws!!! (This was messing with Wavenet quality for a long time!)
 def num_frames(length, fsize, fshift):
-    """Compute number of time frames of spectrogram
-    """
     pad = (fsize - fshift)
     if length % fshift == 0:
         M = (length + pad * 2 - fsize) // fshift + 1
@@ -84,40 +78,41 @@ def num_frames(length, fsize, fshift):
         M = (length + pad * 2 - fsize) // fshift + 2
     return M
 
-
 def pad_lr(x, fsize, fshift):
-    """Compute left and right padding
-    """
     M = num_frames(len(x), fsize, fshift)
     pad = (fsize - fshift)
     T = len(x) + 2 * pad
     r = (M - 1) * fshift + fsize - T
     return pad, pad + r
-##########################################################
-#Librosa correct padding
+
 def librosa_pad_lr(x, fsize, fshift):
     return 0, (x.shape[0] // fshift + 1) * fshift - x.shape[0]
 
-# Conversions
 _mel_basis = None
 
-def _linear_to_mel(spectogram):
+def _linear_to_mel(spectrogram):
     global _mel_basis
     if _mel_basis is None:
         _mel_basis = _build_mel_basis()
-    return np.dot(_mel_basis, spectogram)
+    return np.dot(_mel_basis, spectrogram)
 
 def _build_mel_basis():
+    import librosa.filters  # Imported only when needed
     assert hp.fmax <= hp.sample_rate // 2
-    return librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels,
-                               fmin=hp.fmin, fmax=hp.fmax)
+    return librosa.filters.mel(
+        sr=hp.sample_rate,
+        n_fft=hp.n_fft,
+        n_mels=hp.num_mels,
+        fmin=hp.fmin,
+        fmax=hp.fmax
+    )
 
 def _amp_to_db(x):
     min_level = np.exp(hp.min_level_db / 20 * np.log(10))
     return 20 * np.log10(np.maximum(min_level, x))
 
 def _db_to_amp(x):
-    return np.power(10.0, (x) * 0.05)
+    return np.power(10.0, x * 0.05)
 
 def _normalize(S):
     if hp.allow_clipping_in_normalization:
