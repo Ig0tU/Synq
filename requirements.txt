@@ -16,7 +16,6 @@ importlib-metadata
 itsdangerous
 Jinja2
 joblib
-librosa
 lmdb
 lws
 Markdown
@@ -24,10 +23,6 @@ MarkupSafe
 matplotlib
 msgpack
 networkx
-numpy
-numba
-oauthlib
-mkl-service
 opencv-contrib-python
 opencv-python
 Pillow
@@ -35,7 +30,6 @@ protobuf
 PyWavelets
 PyYAML
 requests
-resampy
 scikit-image
 scikit-learn
 scipy
