@@ -36,16 +36,17 @@ RUN apt-get update && \
 # Set LLVM_CONFIG for clang-14 (needed by llvmlite)
 ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
-# Explicitly install compatible versions of core audio/Numba stack
-# Targeting a more stable Numba/llvmlite for Python 3.9 with resampy
-RUN pip install --no-cache-dir \
-    numpy==1.22.4 \
+# Explicitly install NumPy 1.x first and then compatible versions of core audio/Numba stack
+# Use --force-reinstall to ensure it's not a cached version that's causing issues.
+RUN pip install --no-cache-dir --force-reinstall "numpy<2" \
+    && pip install --no-cache-dir \
     llvmlite==0.36.0 \
     numba==0.53.1 \
     resampy==0.3.1 \
     librosa==0.9.2
 
 # Install other Python dependencies from requirements.txt
+# It's crucial that your requirements.txt does NOT contain a line that forces numpy>=2.0.0
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
