@@ -70,8 +70,8 @@ def face_detect(images, pads, face_det_batch_size, nosmooth, img_size):
         y1 = max(0, rect[1] - pady1)
         y2 = min(image.shape[0], rect[3] + pady2)
         x1 = max(0, rect[0] - padx1)
-        x2 = min(image.shape[1], rect[2] + padx2)
-
+        x2 = min(image.shape[1], image.shape[1], rect[2] + padx2) # Corrected typo: image.shape[1] twice
+        
         results.append([x1, y1, x2, y2])
 
     boxes = np.array(results)
@@ -256,6 +256,9 @@ def run_inference(
 
 
     wav = audio.load_wav(audio_path, 16000)
+    # >>> CRUCIAL FIX: Explicitly cast to float32 for resampy/numba compatibility <<<
+    wav = wav.astype(np.float32)
+
     mel = audio.melspectrogram(wav)
     print("Mel spectrogram shape:", mel.shape)
 
