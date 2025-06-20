@@ -1,3 +1,10 @@
+
+try:
+    import numba.core.decorators as _nd
+    _nd.JitDispatcher.enable_caching = lambda self: None
+except Exception:
+    pass
+
 from flask import Flask, render_template, request, session, redirect, url_for, flash, send_from_directory
 import os
 import secrets
