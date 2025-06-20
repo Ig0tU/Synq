@@ -1,10 +1,11 @@
 
+
 try:
     import numba.core.decorators as _nd
     _nd.JitDispatcher.enable_caching = lambda self: None
 except Exception:
     pass
-
+    
 from flask import Flask, render_template, request, session, redirect, url_for, flash, send_from_directory
 import os
 import secrets
@@ -12,6 +13,9 @@ from werkzeug.utils import secure_filename
 import sys
 import shutil
 import logging # Import the logging module
+
+
+os.environ['NUMBA_CACHE_DIR'] = '/tmp/numba_cache' # Or any other writable directory
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, # Set the minimum logging level
