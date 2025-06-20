@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.9-slim # This is likely Debian 12 "Bookworm"
 
 # Set environment variables for Python and Numba
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -26,29 +26,27 @@ RUN apt-get update && \
         ffmpeg \
         libsndfile1 \
         libsndfile1-dev \
-        # Try to install LLVM 9 directly from Debian's repositories
-        # clang-9 often pulls in the necessary llvm-9-dev components
-        clang-9 \
-        llvm-9-dev \
-        llvm-9-runtime \
-        # Sometimes just 'llvm' and 'libllvm-9-ocaml-dev' or similar
-        # is what's needed, but let's be specific for 9.
-        # If llvm-9-dev still fails, then try just clang-9.
+        # Bookworm typically has LLVM 14, 15, or 16
+        # Let's try clang-14 as it's common for Bookworm.
+        clang-14 \
+        llvm-14-dev \
+        llvm-11-runtime \
         && rm -rf /var/lib/apt/lists/*
 
-# Set LLVM_CONFIG to the specific version's config script
-# For Debian's llvm-9-dev, this path should be correct.
-ENV LLVM_CONFIG=/usr/bin/llvm-config-9
+# Set LLVM_CONFIG for clang-14
+ENV LLVM_CONFIG=/usr/bin/llvm-config-14
 
-
-# Explicitly install compatible versions of core audio/Numba stack
-# Order matters: numpy -> llvmlite -> numba -> resampy -> librosa
+# Explicitly install *newer* compatible versions of core audio/Numba stack
+# This requires a bit of research for ideal Numba/llvmlite/Resampy compatibility
+# with newer LLVM. Let's try a common, more recent pairing that generally works.
+# Numba 0.55.0 works with llvmlite 0.38.0
+# Librosa 0.9.2 uses resampy 0.3.1
 RUN pip install --no-cache-dir \
     numpy==1.22.4 \
-    llvmlite==0.31.0 \
-    numba==0.48.0 \
-    resampy==0.2.2 \
-    librosa==0.8.1
+    llvmlite==0.38.0 \
+    numba==0.55.0 \
+    resampy==0.3.1 \
+    librosa==0.9.2
 
 # Install other Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
