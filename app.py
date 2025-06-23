@@ -151,8 +151,10 @@ def infer():
                 pads=[0, 10, 0, 0],
                 crop=[0, -1, 0, -1],
                 box=[-1, -1, -1, -1],
-                face_det_batch_size=16,
-                wav2lip_batch_size=128,
+                face_det_batch_size=4,
+                wav2lip_batch_size=32,
+                #face_det_batch_size=16,
+                #wav2lip_batch_size=128,
                 img_size=96
             )
             logger.info(f"Inference completed successfully. Generated video: {generated_video_path}")
