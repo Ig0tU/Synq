@@ -70,7 +70,8 @@ def face_detect(images, pads, face_det_batch_size, nosmooth, img_size):
         y1 = max(0, rect[1] - pady1)
         y2 = min(image.shape[0], rect[3] + pady2)
         x1 = max(0, rect[0] - padx1)
-        x2 = min(image.shape[1], image.shape[1], rect[2] + padx2) # Corrected typo: image.shape[1] twice
+        #x2 = min(image.shape[1], image.shape[1], rect[2] + padx2) # Corrected typo: image.shape[1] twice
+        x2 = min(image.shape[1], rect[2] + padx2) 
         
         results.append([x1, y1, x2, y2])
 
