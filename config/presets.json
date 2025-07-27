@@ -1,0 +1,102 @@
+{
+  "high_quality": {
+    "name": "High Quality",
+    "description": "Best quality output with higher processing time",
+    "settings": {
+      "fps": 25.0,
+      "resize_factor": 1,
+      "face_det_batch_size": 4,
+      "wav2lip_batch_size": 32,
+      "img_size": 96,
+      "pads": [
+        0,
+        10,
+        0,
+        0
+      ],
+      "nosmooth": false,
+      "static": false,
+      "rotate": false
+    }
+  },
+  "fast_processing": {
+    "name": "Fast Processing",
+    "description": "Faster processing with good quality",
+    "settings": {
+      "fps": 25.0,
+      "resize_factor": 2,
+      "face_det_batch_size": 8,
+      "wav2lip_batch_size": 64,
+      "img_size": 96,
+      "pads": [
+        0,
+        10,
+        0,
+        0
+      ],
+      "nosmooth": false,
+      "static": false,
+      "rotate": false
+    }
+  },
+  "mobile_optimized": {
+    "name": "Mobile Optimized",
+    "description": "Optimized for mobile devices and smaller files",
+    "settings": {
+      "fps": 24.0,
+      "resize_factor": 2,
+      "face_det_batch_size": 16,
+      "wav2lip_batch_size": 128,
+      "img_size": 96,
+      "pads": [
+        0,
+        15,
+        0,
+        0
+      ],
+      "nosmooth": false,
+      "static": false,
+      "rotate": false
+    }
+  },
+  "portrait_mode": {
+    "name": "Portrait Mode",
+    "description": "Optimized for portrait/vertical videos",
+    "settings": {
+      "fps": 30.0,
+      "resize_factor": 1,
+      "face_det_batch_size": 6,
+      "wav2lip_batch_size": 48,
+      "img_size": 96,
+      "pads": [
+        0,
+        20,
+        0,
+        0
+      ],
+      "nosmooth": false,
+      "static": false,
+      "rotate": false
+    }
+  },
+  "batch_processing": {
+    "name": "Batch Processing",
+    "description": "Optimized for processing multiple files",
+    "settings": {
+      "fps": 25.0,
+      "resize_factor": 2,
+      "face_det_batch_size": 16,
+      "wav2lip_batch_size": 128,
+      "img_size": 96,
+      "pads": [
+        0,
+        10,
+        0,
+        0
+      ],
+      "nosmooth": true,
+      "static": false,
+      "rotate": false
+    }
+  }
+}

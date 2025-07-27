@@ -1,118 +1,206 @@
+
 {% extends "base.html" %}
 
-{% block title %}Wav2Lip Inference App{% endblock %}
+{% block title %}AI Lip Sync - Enhanced{% endblock %}
 
 {% block head_extra %}
     <style>
-        .flash-messages {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-            text-align: center;
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
         }
-        .flash-messages li {
-            padding: 10px 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-weight: 600;
-            display: inline-block;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            animation: fadeInOut 0.5s ease forwards;
-        }
-        .flash-messages .error {
-            background-color: #dc3545;
-            color: #fff;
-        }
-        .flash-messages .success {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .flash-messages .info {
-            background-color: #007bff;
-            color: #fff;
-        }
-
-        /* Form specific styles */
-        .inference-form {
+        
+        .single-processing, .bulk-processing {
             background-color: var(--card-background);
-            padding: 40px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 8px 20px var(--shadow);
-            margin-top: 40px;
-            margin-bottom: 40px;
             animation: fadeInScale 0.8s ease-out forwards;
         }
-
-        .inference-form h2 {
+        
+        .processing-header {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 30px;
-            font-size: 2.2em;
-        }
-
-        .form-group {
             margin-bottom: 25px;
         }
-
+        
+        .processing-header h2 {
+            color: var(--primary-color);
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .processing-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
         .form-group label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 600;
             color: var(--text-color);
-            font-size: 1.1em;
         }
-
+        
         .form-group input[type="file"],
         .form-group select,
-        .form-group input[type="number"] {
+        .form-group input[type="number"],
+        .form-group input[type="range"] {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             background-color: var(--background-color);
             color: var(--text-color);
-            font-size: 1em;
-            box-sizing: border-box; /* Include padding in width */
-            transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.2s ease;
+            font-size: 0.9em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.2s ease;
         }
-
-        .form-group input[type="file"]:focus,
-        .form-group select:focus,
-        .form-group input[type="number"]:focus {
+        
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
             outline: none;
         }
-
-        .form-group select {
-            appearance: none; /* Remove default arrow */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23{{ "e0e0e0" if theme == "dark" else "333" }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 12px top 50%;
-            background-size: 16px;
+        
+        .file-drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
         }
-
+        
+        .file-drop-zone:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.05);
+        }
+        
+        .file-drop-zone.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.1);
+        }
+        
+        .file-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .file-preview img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+        }
+        
+        .preset-selector {
+            margin-bottom: 20px;
+        }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .preset-card {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .preset-card:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.05);
+        }
+        
+        .preset-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.1);
+        }
+        
+        .preset-card h4 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+        }
+        
+        .preset-card p {
+            margin: 0;
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+        
+        .micro-changes {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--background-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .micro-changes h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .micro-change-item {
+            margin-bottom: 15px;
+        }
+        
+        .micro-change-item label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .micro-change-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .range-input {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .range-info {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
         .checkbox-group {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
-            color: var(--text-color);
         }
-
+        
         .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
-            width: 20px;
-            height: 20px;
-            accent-color: var(--primary-color); /* Changes checkbox color */
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
         }
-
-        .checkbox-group label {
-            margin-bottom: 0; /* Override default label margin */
-            font-size: 1em;
-        }
-
+        
         .submit-button {
             width: 100%;
             padding: 15px;
@@ -120,163 +208,514 @@
             color: #fff;
             border: none;
             border-radius: 8px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-
+        
         .submit-button:hover {
             background-color: var(--accent-color);
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
-
-        .submit-button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
-
-        /* Animation for flash messages */
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(-10px); }
-            100% { opacity: 1; transform: translateY(0); }
+        
+        .bulk-file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
         }
-
-        /* Optional: Add a spinner for loading state */
+        
+        .bulk-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .bulk-file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .remove-file {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 1000;
             flex-direction: column;
-            color: white;
-            font-size: 1.5em;
-            display: none; /* Hidden by default */
         }
-
+        
         .spinner {
-            border: 8px solid #f3f3f3; /* Light grey */
-            border-top: 8px solid var(--primary-color); /* Blue */
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            border-top: 4px solid var(--primary-color);
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <ul class="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </ul>
-
-    <section class="inference-form">
-        <h2>Generate Lip-Synced Video</h2>
-        <form action="{{ url_for('infer') }}" method="post" enctype="multipart/form-data" id="inferenceForm">
-            <div class="form-group">
-                <label for="face_file">Select Face Input (Video/Image):</label>
-                <input type="file" id="face_file" name="face_file" accept="video/*,image/*" required>
+    <div class="main-container">
+        <!-- Single File Processing -->
+        <div class="single-processing">
+            <div class="processing-header">
+                <h2><i class="fas fa-video"></i> Single File Processing</h2>
+                <p>Process one face and audio file pair</p>
             </div>
-
-            <div class="form-group">
-                <label for="audio_file">Select Audio Input (Audio/Video):</label>
-                <input type="file" id="audio_file" name="audio_file" accept="audio/*,video/*" required>
-            </div>
-
-            <div class="form-group">
-                <label for="model_select">Select Wav2Lip Model:</label>
-                <select id="model_select" name="model_select" required>
-                    <option value="">-- Choose a model --</option>
-                    {% for model in models %}
-                        <option value="{{ model }}">{{ model }}</option>
+            
+            <form action="{{ url_for('infer') }}" method="post" enctype="multipart/form-data" id="singleForm">
+                <!-- Preset Selection -->
+                <div class="preset-selector">
+                    <label>Choose a Preset:</label>
+                    <div class="preset-grid" id="presetGrid">
+                        {% for preset_id, preset in presets.items() %}
+                        <div class="preset-card" data-preset-id="{{ preset_id }}">
+                            <h4>{{ preset.name }}</h4>
+                            <p>{{ preset.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="preset_select" id="selectedPreset">
+                </div>
+                
+                <!-- File Inputs -->
+                <div class="form-group">
+                    <label for="face_file">Face Input (Video/Image):</label>
+                    <div class="file-drop-zone" id="faceDropZone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 2em; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>Drop face file here or click to browse</p>
+                        <input type="file" id="face_file" name="face_file" accept="video/*,image/*" required style="display: none;">
+                    </div>
+                    <div id="facePreview" class="file-preview" style="display: none;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="audio_file">Audio Input (Audio/Video):</label>
+                    <div class="file-drop-zone" id="audioDropZone">
+                        <i class="fas fa-music" style="font-size: 2em; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>Drop audio file here or click to browse</p>
+                        <input type="file" id="audio_file" name="audio_file" accept="audio/*,video/*" required style="display: none;">
+                    </div>
+                    <div id="audioPreview" class="file-preview" style="display: none;"></div>
+                </div>
+                
+                <!-- Model Selection -->
+                <div class="form-group">
+                    <label for="model_select">Wav2Lip Model:</label>
+                    <select id="model_select" name="model_select" required>
+                        <option value="">-- Choose a model --</option>
+                        {% for model in models %}
+                            <option value="{{ model }}">{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Micro-Changes -->
+                <div class="micro-changes" id="microChanges" style="display: none;">
+                    <h3><i class="fas fa-sliders-h"></i> Fine-Tune Settings</h3>
+                    {% for change_id, template in micro_change_templates.items() %}
+                    <div class="micro-change-item">
+                        <label>
+                            <span>{{ template.name }}</span>
+                            <span class="micro-change-value" id="value_{{ change_id }}">{{ template.default_value }}</span>
+                        </label>
+                        <input type="range" 
+                               class="range-input" 
+                               name="micro_{{ change_id }}" 
+                               id="micro_{{ change_id }}"
+                               min="{{ template.min_value if template.min_value is not iterable else template.min_value[1] }}" 
+                               max="{{ template.max_value if template.max_value is not iterable else template.max_value[1] }}" 
+                               value="{{ template.default_value if template.default_value is not iterable else template.default_value[1] }}" 
+                               step="{{ template.step if template.step is not iterable else template.step[1] }}">
+                        <div class="range-info">{{ template.impact }}</div>
+                    </div>
                     {% endfor %}
-                </select>
+                </div>
+                
+                <!-- Advanced Options -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="static_input" name="static_input">
+                    <label for="static_input">Use static image (first frame only)</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rotate" name="rotate">
+                    <label for="rotate">Rotate 90 degrees clockwise</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="nosmooth" name="nosmooth">
+                    <label for="nosmooth">Disable face detection smoothing</label>
+                </div>
+                
+                <button type="submit" class="submit-button">
+                    <i class="fas fa-play"></i> Generate Lip-Sync
+                </button>
+            </form>
+        </div>
+        
+        <!-- Bulk Processing -->
+        <div class="bulk-processing">
+            <div class="processing-header">
+                <h2><i class="fas fa-layer-group"></i> Bulk Processing</h2>
+                <p>Process multiple file pairs in batch</p>
             </div>
-
-            <h3>Advanced Options (Optional)</h3>
-            <div class="checkbox-group">
-                <input type="checkbox" id="static_input" name="static_input">
-                <label for="static_input">Use static image (only first frame of video)</label>
+            
+            <form id="bulkForm">
+                <!-- Bulk File Upload -->
+                <div class="form-group">
+                    <label>Add File Pairs:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 10px;">
+                        <input type="file" id="bulkFaceFile" accept="video/*,image/*" placeholder="Face file">
+                        <input type="file" id="bulkAudioFile" accept="audio/*,video/*" placeholder="Audio file">
+                        <button type="button" id="addFilePair" class="submit-button" style="width: auto; padding: 10px 15px;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="bulk-file-list" id="bulkFileList">
+                        <p style="text-align: center; opacity: 0.6; margin: 20px 0;">No file pairs added yet</p>
+                    </div>
+                </div>
+                
+                <!-- Bulk Model Selection -->
+                <div class="form-group">
+                    <label for="bulk_model_select">Wav2Lip Model:</label>
+                    <select id="bulk_model_select" required>
+                        <option value="">-- Choose a model --</option>
+                        {% for model in models %}
+                            <option value="{{ model }}">{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Bulk Preset Selection -->
+                <div class="form-group">
+                    <label>Processing Preset:</label>
+                    <select id="bulk_preset_select">
+                        <option value="">-- Choose a preset --</option>
+                        {% for preset_id, preset in presets.items() %}
+                            <option value="{{ preset_id }}">{{ preset.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-button" id="bulkSubmit" disabled>
+                    <i class="fas fa-rocket"></i> Start Bulk Processing
+                </button>
+            </form>
+            
+            <!-- Bulk Progress -->
+            <div id="bulkProgress" style="display: none; margin-top: 20px;">
+                <h3>Processing Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="bulkProgressFill"></div>
+                </div>
+                <p id="bulkProgressText">Preparing...</p>
+                <button type="button" id="cancelBulk" class="submit-button" style="background-color: #dc3545;">
+                    <i class="fas fa-stop"></i> Cancel Processing
+                </button>
             </div>
-
-            <div class="form-group">
-                <label for="fps">FPS (for static image input):</label>
-                <input type="number" id="fps" name="fps" value="25" min="1" max="60">
-            </div>
-
-            <div class="form-group">
-                <label for="resize_factor">Resize Factor:</label>
-                <input type="number" id="resize_factor" name="resize_factor" value="1" min="1" max="4">
-                <small style="color: var(--text-color);">Reduces resolution (e.g., 2 for half resolution). Can improve performance.</small>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="rotate" name="rotate">
-                <label for="rotate">Rotate 90 degrees clockwise</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="nosmooth" name="nosmooth">
-                <label for="nosmooth">Disable face detection smoothing</label>
-            </div>
-
-            <button type="submit" class="submit-button pulse">Generate Lip-Sync</button>
-        </form>
-    </section>
-
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <p>Processing your video, please wait...</p>
-        <p>This may take several minutes depending on video length and selected options.</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p id="loadingText">Processing your video, please wait...</p>
     </div>
-
 {% endblock %}
 
 {% block scripts_extra %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inferenceForm = document.getElementById('inferenceForm');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-
-        inferenceForm.addEventListener('submit', function() {
-            loadingOverlay.style.display = 'flex'; // Show loading overlay on form submission
-            // Disable submit button to prevent multiple submissions
-            const submitButton = inferenceForm.querySelector('.submit-button');
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.textContent = 'Processing...';
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Preset selection
+    const presetCards = document.querySelectorAll('.preset-card');
+    const selectedPresetInput = document.getElementById('selectedPreset');
+    const microChanges = document.getElementById('microChanges');
+    
+    presetCards.forEach(card => {
+        card.addEventListener('click', function() {
+            presetCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPresetInput.value = this.dataset.presetId;
+            microChanges.style.display = 'block';
         });
-
-        // Hide loading overlay if page loads without form submission (e.g., on error redirect)
-        window.addEventListener('load', function() {
-            loadingOverlay.style.display = 'none';
-            const submitButton = inferenceForm.querySelector('.submit-button');
-            if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Generate Lip-Sync';
+    });
+    
+    // Micro-change sliders
+    const microSliders = document.querySelectorAll('.range-input');
+    microSliders.forEach(slider => {
+        slider.addEventListener('input', function() {
+            const valueDisplay = document.getElementById('value_' + this.name.replace('micro_', ''));
+            if (valueDisplay) {
+                valueDisplay.textContent = this.value;
             }
         });
     });
+    
+    // File drop zones
+    function setupDropZone(dropZoneId, inputId, previewId, fileType) {
+        const dropZone = document.getElementById(dropZoneId);
+        const fileInput = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFilePreview(files[0], preview, fileType);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFilePreview(e.target.files[0], preview, fileType);
+            }
+        });
+    }
+    
+    function handleFilePreview(file, previewElement, fileType) {
+        previewElement.style.display = 'block';
+        previewElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-${fileType === 'face' ? 'image' : 'music'}" style="font-size: 1.5em; color: var(--primary-color);"></i>
+                <div>
+                    <strong>${file.name}</strong><br>
+                    <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                </div>
+            </div>
+        `;
+        
+        // Generate preview
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', fileType);
+        
+        fetch('/generate_preview', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const img = document.createElement('img');
+                img.src = data.preview_url;
+                img.style.marginTop = '10px';
+                previewElement.appendChild(img);
+            }
+        })
+        .catch(error => console.error('Preview generation error:', error));
+    }
+    
+    setupDropZone('faceDropZone', 'face_file', 'facePreview', 'face');
+    setupDropZone('audioDropZone', 'audio_file', 'audioPreview', 'audio');
+    
+    // Bulk processing
+    const bulkFilePairs = [];
+    const addFilePairBtn = document.getElementById('addFilePair');
+    const bulkFileList = document.getElementById('bulkFileList');
+    const bulkSubmit = document.getElementById('bulkSubmit');
+    
+    addFilePairBtn.addEventListener('click', function() {
+        const faceFile = document.getElementById('bulkFaceFile').files[0];
+        const audioFile = document.getElementById('bulkAudioFile').files[0];
+        
+        if (!faceFile || !audioFile) {
+            alert('Please select both face and audio files');
+            return;
+        }
+        
+        bulkFilePairs.push({
+            face: faceFile,
+            audio: audioFile,
+            id: Date.now()
+        });
+        
+        updateBulkFileList();
+        
+        // Clear inputs
+        document.getElementById('bulkFaceFile').value = '';
+        document.getElementById('bulkAudioFile').value = '';
+    });
+    
+    function updateBulkFileList() {
+        if (bulkFilePairs.length === 0) {
+            bulkFileList.innerHTML = '<p style="text-align: center; opacity: 0.6; margin: 20px 0;">No file pairs added yet</p>';
+            bulkSubmit.disabled = true;
+        } else {
+            bulkFileList.innerHTML = bulkFilePairs.map((pair, index) => `
+                <div class="bulk-file-item">
+                    <div class="file-pair">
+                        <span><i class="fas fa-image"></i> ${pair.face.name}</span>
+                        <span><i class="fas fa-music"></i> ${pair.audio.name}</span>
+                        <button type="button" class="remove-file" onclick="removeBulkFile(${pair.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            bulkSubmit.disabled = false;
+        }
+    }
+    
+    window.removeBulkFile = function(id) {
+        const index = bulkFilePairs.findIndex(pair => pair.id === id);
+        if (index > -1) {
+            bulkFilePairs.splice(index, 1);
+            updateBulkFileList();
+        }
+    };
+    
+    // Form submissions
+    const singleForm = document.getElementById('singleForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    singleForm.addEventListener('submit', function() {
+        loadingOverlay.style.display = 'flex';
+    });
+    
+    // Bulk form submission
+    const bulkForm = document.getElementById('bulkForm');
+    const bulkProgress = document.getElementById('bulkProgress');
+    
+    bulkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const model = document.getElementById('bulk_model_select').value;
+        const preset = document.getElementById('bulk_preset_select').value;
+        
+        if (!model) {
+            alert('Please select a model');
+            return;
+        }
+        
+        if (bulkFilePairs.length === 0) {
+            alert('Please add at least one file pair');
+            return;
+        }
+        
+        // Start bulk processing
+        startBulkProcessing(model, preset);
+    });
+    
+    function startBulkProcessing(model, preset) {
+        // Upload files and start processing
+        const formData = new FormData();
+        
+        bulkFilePairs.forEach((pair, index) => {
+            formData.append(`face_${index}`, pair.face);
+            formData.append(`audio_${index}`, pair.audio);
+        });
+        
+        // Show progress
+        bulkProgress.style.display = 'block';
+        bulkForm.style.display = 'none';
+        
+        // Simulate progress for now (in real implementation, this would track actual progress)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(progressInterval);
+                document.getElementById('bulkProgressText').textContent = 'Processing complete!';
+            }
+            
+            document.getElementById('bulkProgressFill').style.width = progress + '%';
+            document.getElementById('bulkProgressText').textContent = `Processing... ${Math.round(progress)}%`;
+        }, 500);
+    }
+    
+    // Hide loading overlay on page load
+    window.addEventListener('load', function() {
+        loadingOverlay.style.display = 'none';
+    });
+});
 </script>
 {% endblock %}

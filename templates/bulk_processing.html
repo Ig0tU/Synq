@@ -1,0 +1,550 @@
+
+{% extends "base.html" %}
+
+{% block title %}Bulk Processing - AI Lip Sync{% endblock %}
+
+{% block head_extra %}
+    <style>
+        .bulk-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .bulk-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .bulk-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .bulk-header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+        
+        .bulk-setup {
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .file-upload-area {
+            border: 3px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.05);
+        }
+        
+        .file-upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .upload-hint {
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+        
+        .file-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        
+        .add-pair-btn {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .add-pair-btn:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+        
+        .file-pairs-list {
+            background-color: var(--background-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+        }
+        
+        .file-pair-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+        
+        .file-pair-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-icon {
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .file-size {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+        
+        .preview-btn, .remove-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .preview-btn {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .preview-btn:hover, .remove-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .settings-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .settings-group {
+            background-color: var(--background-color);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .settings-group h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--card-background);
+            color: var(--text-color);
+        }
+        
+        .preset-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .preset-card {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .preset-card:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.05);
+        }
+        
+        .preset-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(233, 69, 96, 0.1);
+        }
+        
+        .preset-card h4 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+        }
+        
+        .preset-card p {
+            margin: 0;
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+        
+        .start-processing-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.3);
+        }
+        
+        .start-processing-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+        }
+        
+        .start-processing-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        @media (max-width: 768px) {
+            .settings-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-pair-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .preset-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="bulk-container">
+        <div class="bulk-header">
+            <h1><i class="fas fa-layer-group"></i> Bulk Processing</h1>
+            <p>Process multiple face and audio file pairs efficiently</p>
+        </div>
+        
+        <!-- Bulk Setup -->
+        <div class="bulk-setup" id="bulkSetup">
+            <h2><i class="fas fa-upload"></i> Upload Files</h2>
+            
+            <!-- File Upload Area -->
+            <div class="file-upload-area" id="fileUploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">Drag and drop files here or click to browse</div>
+                <div class="upload-hint">Support for images, videos, and audio files</div>
+                <input type="file" id="bulkFileInput" multiple accept="video/*,image/*,audio/*" style="display: none;">
+            </div>
+            
+            <!-- Manual File Pair Addition -->
+            <div class="file-input-group">
+                <div class="file-input-wrapper">
+                    <label>Face File (Image/Video)</label>
+                    <input type="file" id="faceFileInput" accept="video/*,image/*">
+                </div>
+                <div class="file-input-wrapper">
+                    <label>Audio File (Audio/Video)</label>
+                    <input type="file" id="audioFileInput" accept="audio/*,video/*">
+                </div>
+                <button type="button" class="add-pair-btn" id="addPairBtn">
+                    <i class="fas fa-plus"></i> Add Pair
+                </button>
+            </div>
+            
+            <!-- File Pairs List -->
+            <div class="file-pairs-list" id="filePairsList">
+                <div style="text-align: center; padding: 40px; opacity: 0.6;">
+                    <i class="fas fa-inbox" style="font-size: 3em; margin-bottom: 15px;"></i>
+                    <p>No file pairs added yet. Add files above to get started.</p>
+                </div>
+            </div>
+            
+            <!-- Settings Panel -->
+            <div class="settings-panel">
+                <div class="settings-group">
+                    <h3><i class="fas fa-cog"></i> Processing Settings</h3>
+                    
+                    <div class="form-group">
+                        <label for="modelSelect">Wav2Lip Model</label>
+                        <select id="modelSelect" required>
+                            <option value="">-- Choose a model --</option>
+                            {% for model in models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="outputFormat">Output Format</label>
+                        <select id="outputFormat">
+                            <option value="mp4">MP4 (Recommended)</option>
+                            <option value="avi">AVI</option>
+                            <option value="mov">MOV</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3><i class="fas fa-magic"></i> Quality Presets</h3>
+                    
+                    <div class="preset-cards" id="presetCards">
+                        {% for preset_id, preset in presets.items() %}
+                        <div class="preset-card" data-preset-id="{{ preset_id }}">
+                            <h4>{{ preset.name }}</h4>
+                            <p>{{ preset.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Start Processing Button -->
+            <button type="button" class="start-processing-btn" id="startProcessingBtn" disabled>
+                <i class="fas fa-rocket"></i> Start Bulk Processing
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let filePairs = [];
+    let selectedPreset = null;
+    
+    // Elements
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const bulkFileInput = document.getElementById('bulkFileInput');
+    const faceFileInput = document.getElementById('faceFileInput');
+    const audioFileInput = document.getElementById('audioFileInput');
+    const addPairBtn = document.getElementById('addPairBtn');
+    const filePairsList = document.getElementById('filePairsList');
+    const presetCards = document.querySelectorAll('.preset-card');
+    const startProcessingBtn = document.getElementById('startProcessingBtn');
+    
+    // File upload area interactions
+    fileUploadArea.addEventListener('click', () => bulkFileInput.click());
+    
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        handleFilesDrop(e.dataTransfer.files);
+    });
+    
+    bulkFileInput.addEventListener('change', (e) => {
+        handleFilesDrop(e.target.files);
+    });
+    
+    // Add pair button
+    addPairBtn.addEventListener('click', () => {
+        const faceFile = faceFileInput.files[0];
+        const audioFile = audioFileInput.files[0];
+        
+        if (!faceFile || !audioFile) {
+            alert('Please select both face and audio files');
+            return;
+        }
+        
+        addFilePair(faceFile, audioFile);
+        faceFileInput.value = '';
+        audioFileInput.value = '';
+    });
+    
+    // Preset selection
+    presetCards.forEach(card => {
+        card.addEventListener('click', () => {
+            presetCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedPreset = card.dataset.presetId;
+            updateStartButton();
+        });
+    });
+    
+    function handleFilesDrop(files) {
+        const fileArray = Array.from(files);
+        const faceFiles = fileArray.filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+        const audioFiles = fileArray.filter(f => f.type.startsWith('audio/'));
+        
+        // Auto-pair files if possible
+        const minLength = Math.min(faceFiles.length, audioFiles.length);
+        for (let i = 0; i < minLength; i++) {
+            addFilePair(faceFiles[i], audioFiles[i]);
+        }
+    }
+    
+    function addFilePair(faceFile, audioFile) {
+        const pair = {
+            id: Date.now() + Math.random(),
+            face: faceFile,
+            audio: audioFile
+        };
+        
+        filePairs.push(pair);
+        updateFilePairsList();
+        updateStartButton();
+    }
+    
+    function updateFilePairsList() {
+        if (filePairs.length === 0) {
+            filePairsList.innerHTML = `
+                <div style="text-align: center; padding: 40px; opacity: 0.6;">
+                    <i class="fas fa-inbox" style="font-size: 3em; margin-bottom: 15px;"></i>
+                    <p>No file pairs added yet. Add files above to get started.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        filePairsList.innerHTML = filePairs.map(pair => `
+            <div class="file-pair-item">
+                <div class="file-info">
+                    <div class="file-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${pair.face.name}</div>
+                        <div class="file-size">${(pair.face.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
+                </div>
+                <div class="file-info">
+                    <div class="file-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name">${pair.audio.name}</div>
+                        <div class="file-size">${(pair.audio.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
+                </div>
+                <button class="preview-btn" onclick="previewPair('${pair.id}')">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+                <button class="remove-btn" onclick="removePair('${pair.id}')">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    function updateStartButton() {
+        const modelSelected = document.getElementById('modelSelect').value;
+        const hasPairs = filePairs.length > 0;
+        const hasPreset = selectedPreset !== null;
+        
+        startProcessingBtn.disabled = !(modelSelected && hasPairs && hasPreset);
+    }
+    
+    // Global functions for button clicks
+    window.previewPair = function(pairId) {
+        const pair = filePairs.find(p => p.id == pairId);
+        if (pair) {
+            console.log('Preview pair:', pair);
+        }
+    };
+    
+    window.removePair = function(pairId) {
+        filePairs = filePairs.filter(p => p.id != pairId);
+        updateFilePairsList();
+        updateStartButton();
+    };
+    
+    // Model selection change
+    document.getElementById('modelSelect').addEventListener('change', updateStartButton);
+});
+</script>
+{% endblock %}
