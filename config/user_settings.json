@@ -1,0 +1,14 @@
+{
+  "theme": "light",
+  "default_preset": "high_quality",
+  "auto_preview": true,
+  "max_file_size_mb": 100,
+  "auto_cleanup_hours": 24,
+  "notification_settings": {
+    "job_completion": true,
+    "job_failure": true,
+    "bulk_completion": true
+  },
+  "advanced_mode": false,
+  "last_used_model": null
+}
