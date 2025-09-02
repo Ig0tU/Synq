@@ -337,7 +337,7 @@ def run_inference(
 
 
     final_output_path = os.path.join(output_dir, output_filename)
-    command = f'ffmpeg -y -i "{audio_path}" -i "{output_avi_path}" -strict -2 -q:v 1 "{final_output_path}"'
+    command = f'ffmpeg -y -i "{audio_path}" -i "{output_avi_path}" -strict -2 -crf 17 "{final_output_path}"'
 
     try:
         subprocess.run(command, shell=True, check=True, capture_output=True)
