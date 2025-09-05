@@ -23,6 +23,21 @@ class ConfigManager:
     def _initialize_default_presets(self):
         """Initialize default configuration presets"""
         default_presets = {
+            'max_quality': {
+                'name': 'Max Quality',
+                'description': 'Absolute best quality with significantly longer processing time',
+                'settings': {
+                    'fps': 30.0,
+                    'resize_factor': 1,
+                    'face_det_batch_size': 4,
+                    'wav2lip_batch_size': 16,
+                    'img_size': 96,
+                    'pads': [0, 20, 0, 0],
+                    'nosmooth': True,
+                    'static': False,
+                    'rotate': False
+                }
+            },
             'high_quality': {
                 'name': 'High Quality',
                 'description': 'Best quality output with higher processing time',
